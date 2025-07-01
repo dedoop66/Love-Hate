@@ -17,7 +17,7 @@ def analyze_sentiment(headlines):
     return results
 
 if __name__ == "__main__":
-    topic = "Taylor Swift"
+    topic = "Lionel Messi"
     print(f"Fetching news about: {topic}")
     headlines = get_news_headlines(topic)
     analyzed = analyze_sentiment(headlines)
@@ -25,3 +25,5 @@ if __name__ == "__main__":
     for title, score in analyzed:
         sentiment = "Positive :-)" if score > 0.05 else "Negative :-(" if score < -0.05 else "Neutral :-|"
         print(f"- {title} ({sentiment}, {score})")
+
+        #
