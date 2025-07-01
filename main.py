@@ -23,5 +23,5 @@ if __name__ == "__main__":
     analyzed = analyze_sentiment(headlines)
     
     for title, score in analyzed:
-        sentiment = "Positive" if score > 0.05 else "Negative" if score < -0.05 else "Neutral"
+        sentiment = "Positive :-)" if score > 0.05 else "Negative :-(" if score < -0.05 else "Neutral :-|"
         print(f"- {title} ({sentiment}, {score})")
