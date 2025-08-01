@@ -85,10 +85,105 @@ def plot_sentiment_aggregated_daily(df):
     plt.tight_layout()
     plt.show()
 
-if __name__ == "__main__":
+#CLI BELOW--------------------- (note to self)
+def main_cli():
     topic = "Lionel Messi"
     print(f"Fetching news about: {topic}")
 
     entries = get_news_headlines(topic)
     df = analyze_sentiment(entries)
     plot_sentiment_aggregated_daily(df) #the chart also looked weird because it was showing sentiments for each article so basically we just lump and get the daily net aggregate of sentiment for a celebrity within a given day
+
+#GUI BELOW--------------------- (note to self)
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+import threading
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+class SentimentApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Celebrity News Sentiment Comparison")
+        self.geometry("1200x800")
+
+        # super simple input fields for two celebrities
+        self.celeb1_var = tk.StringVar()
+        self.celeb2_var = tk.StringVar()
+        tk.Label(self, text="Celebrity 1:").grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        tk.Entry(self, textvariable=self.celeb1_var, width=30).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(self, text="Celebrity 2:").grid(row=0, column=2, padx=10, pady=5, sticky="e")
+        tk.Entry(self, textvariable=self.celeb2_var, width=30).grid(row=0, column=3, padx=5, pady=5)
+
+        self.go_btn = tk.Button(self, text="Go", command=self.on_go)
+        self.go_btn.grid(row=0, column=4, padx=10, pady=5)
+
+        #matplotlib figure same as above, different colors because red green wont work for two variables
+        self.figure = plt.Figure(figsize=(11, 3.5))
+        self.ax = self.figure.add_subplot(111)
+        self.canvas = FigureCanvasTkAgg(self.figure, self)
+        self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=5, pady=10)
+
+        #article tables for below (need to align these better)
+        self.tree1 = self._create_table(row=2, col=0, title="Celebrity 1 Articles")
+        self.tree2 = self._create_table(row=2, col=2, title="Celebrity 2 Articles")
+
+    def _create_table(self, row, col, title):
+        frame = tk.Frame(self)
+        frame.grid(row=row, column=col, padx=10, pady=10, sticky="n")
+        tk.Label(frame, text=title).pack()
+        tree = ttk.Treeview(frame, columns=("Title", "Score"), show="headings", height=15)
+        tree.heading("Title", text="Title")
+        tree.heading("Score", text="Score")
+        tree.column("Title", width=360)
+        tree.column("Score", width=60)
+        tree.pack()
+        return tree
+
+    def on_go(self):
+        threading.Thread(target=self._fetch_and_plot, daemon=True).start()
+
+    def _fetch_and_plot(self):
+        celeb1 = self.celeb1_var.get().strip()
+        celeb2 = self.celeb2_var.get().strip()
+
+        if not celeb1 or not celeb2:
+            messagebox.showerror("Input Error", "Please enter both celebrity names.")
+            return
+
+        df1 = analyze_sentiment(get_news_headlines(celeb1))
+        df2 = analyze_sentiment(get_news_headlines(celeb2))
+
+        self._update_table(self.tree1, df1)
+        self._update_table(self.tree2, df2)
+        self._plot_comparison(df1, df2, celeb1, celeb2)
+
+    def _update_table(self, tree, df):
+        for row in tree.get_children():
+            tree.delete(row)
+        for _, row in df.iterrows():
+            title = row['Title'][:50] + "..." if len(row['Title']) > 50 else row['Title']
+            tree.insert('', 'end', values=(title, f"{row['SentimentScore']:.2f}"))
+
+    def _plot_comparison(self, df1, df2, celeb1, celeb2):
+        self.ax.clear()
+        #aggregate by day like always
+        if not df1.empty:
+            agg1 = df1.set_index('Published').resample('D')['SentimentScore'].sum()
+            self.ax.plot(agg1.index, agg1.values, label=celeb1, color='blue')
+        if not df2.empty:
+            agg2 = df2.set_index('Published').resample('D')['SentimentScore'].sum()
+            self.ax.plot(agg2.index, agg2.values, label=celeb2, color='orange')
+        self.ax.axhline(0, color='black', linestyle='dashed')
+        self.ax.set_title("News Sentiment Over Time")
+        self.ax.set_ylabel("Net Sentiment")
+        self.ax.legend()
+        self.figure.autofmt_xdate()
+        self.canvas.draw()
+
+if __name__ == "__main__":
+
+
+    #Gui...
+    app = SentimentApp()
+    app.mainloop()
