@@ -81,14 +81,14 @@ Goal: provide an intuitive snapshot of "who's loved, who's hated" in the news, a
 ## Known Issues / Bugs / Gotchas
 
 ### Minor
-- Google News RSS only allows last ~100 stories per query (limiting history and analysis depth)
+- Google News RSS only allows last 100 stories per query (limiting history and analysis depth)
 - UI tables can look misaligned on small screens
 - If headlines are missing publish dates, those rows are skipped
 - Plot colors are not configurable (hardcoded for clarity)
-- Sentiment is simple "net daily score" — not a rolling average or advanced metric
+- Sentiment is simple "net daily score"  not a rolling average or advanced metric
 
 ### Major
-- No persistent storage — data is lost on close
+- No persistent storage data is lost on close
 - If Google News RSS changes format or blocks your IP, fetching may fail
 
 ### Inefficiencies
@@ -112,7 +112,7 @@ Goal: provide an intuitive snapshot of "who's loved, who's hated" in the news, a
 ## Ongoing Development
 
 - All new features should be added as new functions or as methods on `SentimentApp`.
-- Keep dependencies minimal — document any additions in this guide.
+- Keep dependencies minimal document any additions in this guide.
 - If new news sources added, clearly document new fetching functions.
 - Consider refactoring as a pip-installable package if project expands.
 
